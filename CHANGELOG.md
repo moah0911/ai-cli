@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Bug Fixes
+
+- **Quiver Arrow SVG output** - `ai image` now extracts SVG markup returned by Arrow 2 and Arrow 2 Telos, saves SVG output from all Arrow image models with the `.svg` extension, and displays larger SVG previews on a white background
+
 ## 0.5.1
 
 <!-- release:start -->
