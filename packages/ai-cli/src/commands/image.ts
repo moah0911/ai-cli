@@ -150,10 +150,13 @@ export function registerImageCommand(program: Command) {
       const jobs = buildJobs(models, countPerModel);
       const useCache = shouldUseCache(opts);
       const cacheTtl = resolveCacheTtl(opts as { cacheTtl?: string });
+      const cacheSeq = new Map<string, number>();
 
       const { total, failed } = await runJobs(
         jobs,
         async (modelId) => {
+          const seq = cacheSeq.get(modelId) ?? 0;
+          cacheSeq.set(modelId, seq + 1);
           const cacheImagesHash = images.length > 0 ? imagesHashForRefs(images) : undefined;
           const key = useCache
             ? cacheKey({
@@ -161,7 +164,7 @@ export function registerImageCommand(program: Command) {
                 model: modelId,
                 prompt: imagePrompt,
                 imagesHash: cacheImagesHash,
-                extra: { size, aspectRatio, quality: opts.quality, style: opts.style },
+                extra: { size, aspectRatio, quality: opts.quality, style: opts.style, seq },
               })
             : undefined;
           if (key) {

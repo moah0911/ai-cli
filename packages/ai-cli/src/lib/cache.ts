@@ -321,7 +321,13 @@ export function pruneCache(opts: { maxSizeBytes?: number; ttlSeconds?: number })
 // ---------------------------------------------------------------------------
 
 export function parseCacheTtl(value: string): number {
-  const n = parsePositiveInt(value, "cache-ttl");
+  if (!/^\d+$/.test(value)) {
+    throw new Error(`--cache-ttl must be a non-negative integer, got "${value}"`);
+  }
+  const n = Number.parseInt(value, 10);
+  if (!Number.isSafeInteger(n) || n < 0) {
+    throw new Error(`--cache-ttl must be a non-negative integer, got "${value}"`);
+  }
   return n;
 }
 

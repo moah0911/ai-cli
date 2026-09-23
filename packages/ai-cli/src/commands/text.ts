@@ -131,10 +131,13 @@ export function registerTextCommand(program: Command) {
       const jobs = buildJobs(models, countPerModel);
       const useCache = shouldUseCache(opts);
       const cacheTtl = resolveCacheTtl(opts as { cacheTtl?: string });
+      const cacheSeq = new Map<string, number>();
 
       const { total, failed } = await runJobs(
         jobs,
         async (modelId) => {
+          const seq = cacheSeq.get(modelId) ?? 0;
+          cacheSeq.set(modelId, seq + 1);
           const key = useCache
             ? cacheKey({
                 command: "text",
@@ -144,7 +147,7 @@ export function registerTextCommand(program: Command) {
                 temperature,
                 maxTokens,
                 imagesHash: images.length > 0 ? imagesHashForRefs(images) : undefined,
-                extra: { format },
+                extra: { format, seq },
               })
             : undefined;
           if (key) {

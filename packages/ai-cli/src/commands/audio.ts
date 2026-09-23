@@ -124,10 +124,13 @@ export function registerAudioCommand(program: Command) {
       const previewAudio = shouldPreviewAudio(opts);
       const useCache = shouldUseCache(opts);
       const cacheTtl = resolveCacheTtl(opts as { cacheTtl?: string });
+      const cacheSeq = new Map<string, number>();
 
       const { total, failed } = await runJobs(
         jobs,
         async (modelId) => {
+          const seq = cacheSeq.get(modelId) ?? 0;
+          cacheSeq.set(modelId, seq + 1);
           const key = useCache
             ? cacheKey({
                 command: "audio.speak",
@@ -139,6 +142,7 @@ export function registerAudioCommand(program: Command) {
                   instructions: opts.instructions,
                   speed,
                   language: opts.language,
+                  seq,
                 },
               })
             : undefined;
@@ -246,6 +250,7 @@ export function registerAudioCommand(program: Command) {
       const jobs = buildJobs(models, countPerModel);
       const useCacheT = shouldUseCache(opts);
       const cacheTtlT = resolveCacheTtl(opts as { cacheTtl?: string });
+      const cacheSeqT = new Map<string, number>();
 
       const { total, failed } = await runJobs(
         jobs,
@@ -258,12 +263,14 @@ export function registerAudioCommand(program: Command) {
           } else if (audioInput instanceof URL) {
             audioHash = audioInput.toString();
           }
+          const seq = cacheSeqT.get(modelId) ?? 0;
+          cacheSeqT.set(modelId, seq + 1);
           const key = useCacheT
             ? cacheKey({
                 command: "audio.transcribe",
                 model: modelId,
                 prompt: audioHash,
-                extra: { format },
+                extra: { format, seq },
               })
             : undefined;
           if (key) {
